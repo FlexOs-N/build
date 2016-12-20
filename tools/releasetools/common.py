@@ -216,8 +216,8 @@ def LoadInfoDict(input_file, input_dir=None):
       if os.path.exists(system_base_fs_file):
         d["system_base_fs_file"] = system_base_fs_file
       else:
-        print "Warning: failed to find system base fs file: %s" % (
-            system_base_fs_file,)
+        print("Warning: failed to find system base fs file: %s" % (
+            system_base_fs_file,))
         del d["system_base_fs_file"]
 
     if "vendor_base_fs_file" in d:
@@ -226,8 +226,8 @@ def LoadInfoDict(input_file, input_dir=None):
       if os.path.exists(vendor_base_fs_file):
         d["vendor_base_fs_file"] = vendor_base_fs_file
       else:
-        print "Warning: failed to find vendor base fs file: %s" % (
-            vendor_base_fs_file,)
+        print("Warning: failed to find vendor base fs file: %s" % (
+            vendor_base_fs_file,))
         del d["vendor_base_fs_file"]
 
   try:
@@ -341,9 +341,10 @@ def LoadRecoveryFSTab(read_helper, fstab_version, recovery_fstab_path,
           else:
             print "%s: unknown option \"%s\"" % (mount_point, i)
 
-      d[mount_point] = Partition(mount_point=mount_point, fs_type=pieces[1],
-                                 device=pieces[2], length=length,
-                                 device2=device2)
+      if not d.get(mount_point):
+          d[mount_point] = Partition(mount_point=mount_point, fs_type=pieces[1],
+                                     device=pieces[2], length=length,
+                                     device2=device2)
 
   elif fstab_version == 2:
     d = {}
@@ -379,9 +380,10 @@ def LoadRecoveryFSTab(read_helper, fstab_version, recovery_fstab_path,
           context = i
 
       mount_point = pieces[1]
-      d[mount_point] = Partition(mount_point=mount_point, fs_type=pieces[2],
-                                 device=pieces[0], length=length,
-                                 device2=None, context=context)
+      if not d.get(mount_point):
+          d[mount_point] = Partition(mount_point=mount_point, fs_type=pieces[2],
+                                     device=pieces[0], length=length,
+                                     device2=None, context=context)
 
   else:
     raise ValueError("Unknown fstab_version: \"%d\"" % (fstab_version,))
@@ -750,6 +752,8 @@ def CheckSize(data, target, info_dict):
   fs_type = None
   limit = None
   if info_dict["fstab"]:
+    if mount_point == "/userdata_extra":
+      mount_point = "/data"
     if mount_point == "/userdata":
       mount_point = "/data"
     p = info_dict["fstab"][mount_point]
@@ -1591,7 +1595,10 @@ PARTITION_TYPES = {
     "ext4": "EMMC",
     "emmc": "EMMC",
     "f2fs": "EMMC",
-    "squashfs": "EMMC"
+    "squashfs": "EMMC",
+    "ext2": "EMMC",
+    "ext3": "EMMC",
+    "vfat": "EMMC"
 }
 
 def GetTypeAndDevice(mount_point, info):
